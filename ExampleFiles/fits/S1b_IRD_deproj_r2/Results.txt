@@ -1,0 +1,22 @@
+###############################################
+####   RESULTS OF SPIRAL CHARACTERISATION   ###
+###############################################
+First angle of the spiral: 255.0deg
+Last angle of the spiral: 45.4deg
+Length of the spiral: -209.6deg
+ 
+### SPIRAL TRACE ###
+spiral trace pitch angle (1st half): 9.573551010388583deg 
+spiral trace pitch angle (2nd half): 12.382829198154024deg 
+spiral trace pitch angle (global): 11.205552651803977deg
+Mean pitch angle  (from all consecutive pairs) log: 10.63642084173971deg 
+Median pitch angle  (from all consecutive pairs) log: 10.333127176159824deg
+ Stddev pitch angle  (from all consecutive pairs) log: 11.04885992984545deg
+  
+Errors on radial separation of trace (max between half kernel and gauss unc):
+ 
+### SPIRAL MODEL ###
+The best fit parameters to the minimize equation are found by log search. 
+Note: the fitted equation is: p[0]*exp(p[1]*theta)
+Best params (in arcsec): r_0 = 0.2177''; b = 0.1978
+The b parameter corresponds to a pitch angle: phi=11.186

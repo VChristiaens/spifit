@@ -1,0 +1,20 @@
+###############################################
+####   RESULTS OF SPIRAL CHARACTERISATION   ###
+###############################################
+First angle of the spiral: 355.0deg
+Last angle of the spiral: 165.5deg
+Length of the spiral: -189.5deg
+ 
+### SPIRAL TRACE ###
+spiral trace pitch angle (1st half): 6.599336647262639deg 
+spiral trace pitch angle (2nd half): 12.871839560695499deg 
+spiral trace pitch angle (global): 10.089219163427565deg
+Mean pitch angle  (from all consecutive pairs) muto12_2params_hc_beta: 9.07534250727852deg 
+Median pitch angle  (from all consecutive pairs) muto12_2params_hc_beta: 7.660357357061662deg
+ Stddev pitch angle  (from all consecutive pairs) muto12_2params_hc_beta: 10.69878988035256deg
+  
+Errors on radial separation of trace (max between half kernel and gauss unc):
+ 
+### SPIRAL MODEL ###
+The best fit parameters to the minimize equation are found by muto12_2params_hc_beta search. 
+Note: the fitted equation is: th_c -clockwise* (np.sign(r-r_c)/p[0]) * (((r/r_c)**(1+p[1]) * ((1/(1+p[1]))-((1/(1-alpha+p[1]))*(r/r_c)**(-alpha)))) - ((1/(1+p[1]))-(1/(1-alpha+p[1]))))
