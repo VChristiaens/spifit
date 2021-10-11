@@ -1,5 +1,5 @@
 from astropy.stats import sigma_clipped_stats
-from hciplot_mine import hciplot as hp
+import hciplot as hp
 from matplotlib import pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
@@ -12,7 +12,7 @@ from vip_hci.var.shapes import dist_matrix
 from vip_hci.stats import cube_distance
 import pdb
     
-   __all__ = ['infer_relative_rotation']
+__all__ = ['infer_relative_rotation']
     
     
 def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0, 

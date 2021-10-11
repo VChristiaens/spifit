@@ -1,0 +1,25 @@
+Metadata-Version: 2.1
+Name: spifit
+Version: 0.0.1
+Summary: Package for spiral tracing and fitting
+Home-page: https://github.com/VChristiaens/spifit
+Author: Valentin Christiaens
+Author-email: valentin.christiaens@uliege.be
+License: MIT
+Platform: UNKNOWN
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Provides-Extra: dev
+License-File: LICENSE
+
+# spifit
+Collection of routines for spiral tracing and fitting.
+
+The capabilities of ``spifit`` are best illustrated in the ``Example.ipynb`` Jupyter Notebook.
+
+

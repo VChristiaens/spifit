@@ -1,0 +1,14 @@
+LICENSE
+README.rst
+setup.py
+spifit/__init__.py
+spifit/bootstrap_uncertainties.py
+spifit/spiral_fit.py
+spifit/trace_and_fit_one_spiral.py
+spifit/utils_rot.py
+spifit.egg-info/PKG-INFO
+spifit.egg-info/SOURCES.txt
+spifit.egg-info/dependency_links.txt
+spifit.egg-info/not-zip-safe
+spifit.egg-info/requires.txt
+spifit.egg-info/top_level.txt

@@ -1,0 +1,10 @@
+hciplot
+vip_hci
+
+[dev]
+hciplot
+vip_hci
+sphinx<=1.5.6
+pytest
+pytest-cov~=2.6.0
+codecov~=2.0.15

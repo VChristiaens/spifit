@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 import math
-from spiral_fit import spiral_minimize, chisquare, spiral_eq_eval, spiral_eq_definition, find_params_unc
-from spiral_fit import measure_pitch_angle, spirals_muto_rc_thc_hc_beta_linsearch # should be in the same directory
+from .spiral_fit import spiral_minimize, chisquare, spiral_eq_eval, spiral_eq_definition, find_params_unc
+from .spiral_fit import measure_pitch_angle, spirals_muto_rc_thc_hc_beta_linsearch # should be in the same directory
 import pdb
 from vip_hci.fits import write_fits
 

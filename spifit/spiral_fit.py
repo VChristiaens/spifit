@@ -15,7 +15,7 @@ from vip_hci.conf import time_ini, timing
 from vip_hci.conf.utils_conf import pool_map, iterable #eval_func_tuple as EFT
 from vip_hci.specfit import find_nearest
 import vip_hci
-from bootstrap_uncertainties import bootstrap_unc
+from .bootstrap_uncertainties import bootstrap_unc
 
 __all__ = ['spiral_minimize',
            'chisquare',
