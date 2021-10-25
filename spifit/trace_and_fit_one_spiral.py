@@ -132,15 +132,20 @@ def fit_one_spiral_arm(I_polar_arr, polar_coords, fwhm, clockwise, tot_range_spi
     param_estimate: 1d array
         First estimate of the best fit parameters to the equation:
         - General Archimedean:  http://mathworld.wolfram.com/ArchimedeanSpiral.html
+            r = a + b * theta^n
             p[0] = a
-            p[1] = n
+            p[1] = b
+            p[2] = n
         - Log:                  https://en.wikipedia.org/wiki/Logarithmic_spiral
+            r = a*exp(b*theta)    
             p[0] = a
             p[1] = b
         - Linear Archimedean:   https://en.wikipedia.org/wiki/Archimedean_spiral
+            r = a + b*theta  
             p[0] = a
             p[1] = b
         - Muto12:               http://iopscience.iop.org/article/10.1088/2041-8205/748/2/L22/pdf;jsessionid=B6BE571C45926447A1F986AD3060E2D8.c4.iopscience.cld.iop.org  (page 3)
+            theta(r) - see expression in Rafikov2002 or Muto et al. (2012)    
             p[0] = theta_0
             p[1] = r_c
             p[2] = h_c
