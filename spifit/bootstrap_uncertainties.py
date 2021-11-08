@@ -148,12 +148,16 @@ def bootstrap_unc(min_func, best_params, spi_coords, errors, fit_eq, res_file,
     label_list = ['Param #{:.0f}'.format(i) for i in range(n_params)]
     
     #try:
-    _, uncertainties = spec_confidence(best_p_boots, label_list, cfd=68.27, 
+    _, unc_dict = spec_confidence(best_p_boots, label_list, cfd=68.27, 
                                        bins=max(int(n_boots/100),50), 
-                                       gaussian_fit=True, weights=None, 
+                                       gaussian_fit=False, weights=None, 
                                        verbose=verbose, save=plot, 
                                        output_dir=outpath, bounds=None, 
                                        priors=None)
+    uncertainties = np.zeros([2,n_params])
+    for i in range(n_params):
+        uncertainties[:,i] = unc_dict['Param #{:.0f}'.format(i)]
+    
 #    except:
 #        if verbose:
 #            print('WARNINGS:')
