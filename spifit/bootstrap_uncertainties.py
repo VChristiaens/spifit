@@ -17,7 +17,13 @@ using bootstrapping.
 #from astropy.stats import gaussian_fwhm_to_sigma
 #import itertools as itt
 #from matplotlib import pyplot as plt
-from vip_hci.conf.utils_conf import pool_map, iterable
+try:
+    from vip_hci.config.utils_conf import pool_map, iterable
+    from vip_hci.fm import confidence as spec_confidence
+except:
+    from vip_hci.conf.utils_conf import pool_map, iterable
+    from vip_hci.specfit import spec_confidence
+    print('A newer version of VIP is available.')
 import numpy as np
 #from operator import mul
 from os.path import isfile
@@ -26,7 +32,6 @@ from os.path import isfile
 #from scipy import interpolate
 #from scipy.optimize import curve_fit
 #from subroutines import find_nearest
-from vip_hci.specfit import spec_confidence
 from vip_hci.fits import write_fits, open_fits
 
 ##################################

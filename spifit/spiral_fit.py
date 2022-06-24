@@ -11,9 +11,15 @@ import numpy as np
 from numpy.polynomial.polynomial import polyval
 import pdb
 from scipy.optimize import minimize
-from vip_hci.conf import time_ini, timing
-from vip_hci.conf.utils_conf import pool_map, iterable #eval_func_tuple as EFT
-from vip_hci.specfit import find_nearest
+try:
+    from vip_hci.config import time_ini, timing
+    from vip_hci.config.utils_conf import pool_map, iterable #eval_func_tuple as EFT
+    from vip_hci.fm import find_nearest
+except:
+    from vip_hci.conf import time_ini, timing
+    from vip_hci.conf.utils_conf import pool_map, iterable #eval_func_tuple as EFT
+    from vip_hci.specfit import find_nearest
+    print('A newer version of VIP is available.')
 import vip_hci
 from .bootstrap_uncertainties import bootstrap_unc
 
@@ -1043,7 +1049,7 @@ def find_params_unc(spi_coords, errors, best_params, fit_eq, clockwise, fwhm,
                                       n_proc=n_proc, plot=True, verbose=verbose, 
                                       outpath=outpath, clockwise=clockwise, 
                                       method=method, options=options, 
-                                      bounds=bounds, **kwargs) # kwargs: e.g. n_proc
+                                      bounds=bounds, overwrite=True, **kwargs) # kwargs: e.g. n_proc
         if res_file is not None: 
             with open(res_file, 'a+') as f:
                 f.write("Uncertainties determined by bootstrapping ({:.0f} bootstraps)...\n".format(n_boots))
@@ -1138,9 +1144,9 @@ def find_params_unc(spi_coords, errors, best_params, fit_eq, clockwise, fwhm,
         
     if fit_eq == 'log':
         pitch_unc = np.rad2deg(np.arctan(np.abs(uncertainties[:,1])))
-        print("*** FINAL PITCH ANGLE ESTIMATE (on the whole spiral): {:.1f}-{:.1f}+{:.1f} deg ***".format(best_pitch,pitch_unc[0],pitch_unc[1]))
+        print("*** FINAL PITCH ANGLE ESTIMATE (on the whole spiral): {:.3f}-{:.3f}+{:.3f} deg ***".format(best_pitch,pitch_unc[0],pitch_unc[1]))
         with open(res_file, 'a+') as f:
-            f.write("*** FINAL PITCH ANGLE ESTIMATE (on the whole spiral): {:.1f}-{:.1f}+{:.1f} deg ***".format(best_pitch,pitch_unc[0],pitch_unc[1]))
+            f.write("*** FINAL PITCH ANGLE ESTIMATE (on the whole spiral): {:.3f}-{:.3f}+{:.3f} deg ***".format(best_pitch,pitch_unc[0],pitch_unc[1]))
                 
     return uncertainties
 

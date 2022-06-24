@@ -8,7 +8,11 @@ import vip_hci as vip
 from vip_hci.preproc import frame_rotate
 from vip_hci.preproc.rescaling import _cube_resc_wave
 from vip_hci.var import frame_center
-from vip_hci.var.shapes import dist_matrix
+try:
+    from vip_hci.var import dist_matrix
+except:
+    from vip_hci.var.shapes import dist_matrix
+    print('A newer version of VIP is available.')
 from vip_hci.stats import cube_distance
 import pdb
     
