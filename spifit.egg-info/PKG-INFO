@@ -6,7 +6,6 @@ Home-page: https://github.com/VChristiaens/spifit
 Author: Valentin Christiaens
 Author-email: valentin.christiaens@uliege.be
 License: MIT
-Platform: UNKNOWN
 Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: MacOS :: MacOS X
@@ -21,5 +20,3 @@ License-File: LICENSE
 Collection of routines for spiral tracing and fitting.
 
 The capabilities of ``spifit`` are best illustrated in the ``Example.ipynb`` Jupyter Notebook.
-
-

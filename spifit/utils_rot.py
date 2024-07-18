@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from scipy.stats import norm
 import vip_hci as vip
 from vip_hci.preproc import frame_rotate
-from vip_hci.preproc.rescaling import _cube_resc_wave
+from vip_hci.preproc.rescaling import cube_rescaling_wavelengths as _cube_resc_wave
 from vip_hci.var import frame_center
 try:
     from vip_hci.var import dist_matrix
@@ -15,46 +15,46 @@ except:
     print('A newer version of VIP is available.')
 from vip_hci.stats import cube_distance
 import pdb
-    
+
 __all__ = ['infer_relative_rotation']
-    
-    
-def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0, 
-                            rout=None, thr1=10, rsquare=1, thr2=0, dist='pearson', 
-                            rotang=0, upscal=True, debug=False, figname='Comparison_frames.pdf', 
+
+
+def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
+                            rout=None, thr1=10, rsquare=1, thr2=0, dist='pearson',
+                            rotang=0, upscal=True, debug=False, figname='Comparison_frames.pdf',
                             fig_labels=None, fitsname=None):
     """
-    Routine to infer relative rotation between 2nd to Nth frame with respect to 
+    Routine to infer relative rotation between 2nd to Nth frame with respect to
     the first one.
-    
+
     Parameters
     **********
     frames: list or tuple of 2D numpy arrays
-        Frames to be compared. If tuple of lenght N, a tuple of N-1 relative 
+        Frames to be compared. If tuple of lenght N, a tuple of N-1 relative
         rotations will be returned
     plsc: numpy array
         Should contain the plate scale of each input frame
     test_rot: numpy array 1D
         Vector of rotation angles to be tested.
     shifts_xy: numpy array, opt
-        Should contain the shifts (dimension: nframes x 2) with respect to 
-        star positioned on the central pixel(s). If None, assumes the frames 
+        Should contain the shifts (dimension: nframes x 2) with respect to
+        star positioned on the central pixel(s). If None, assumes the frames
         are perfectly centered.
     rmask: float, opt
-        If non-zero, will mask the inner part of the image before cross 
-        correlation. Should be provided in arcsec. 
+        If non-zero, will mask the inner part of the image before cross
+        correlation. Should be provided in arcsec.
     rout: float, opt
         Radius beyond which all values are set to zero (considered noise).
         If None will be computed automatically from stddev and thr1 in the images.
     thr1: float or tuple of floats, opt
-        If not zero, will threshold the image before rsquare, i.e. set values 
-        to 0 if below the threshold. Threshold should be provided in terms of 
-        standard deviation (which will be computed robustly for each image using 
-        astropy.stats.sigma_clipped_stats with sigma=2.5). If a tuple, the 
+        If not zero, will threshold the image before rsquare, i.e. set values
+        to 0 if below the threshold. Threshold should be provided in terms of
+        standard deviation (which will be computed robustly for each image using
+        astropy.stats.sigma_clipped_stats with sigma=2.5). If a tuple, the
         length should match the number of frames.
     rsquare: int, or tuple of int, opt
-        Whether to rescale the image by r^2 (1). If set to 0.5, will only 
-        rescale by r, while 0 will not rescale radially. If a tuple, length 
+        Whether to rescale the image by r^2 (1). If set to 0.5, will only
+        rescale by r, while 0 will not rescale radially. If a tuple, length
         should match number of frames.
     thr2: float or tuple of floats, opt
         Same as thr1 but applied after rsquare (only applied if non zero).
@@ -64,34 +64,34 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
     rotang: float or tuple of floats, opt
         Initial rotation(s) to be applied to the frames to align North up
     upscal: bool, opt
-        Whether to upscale (or leave intact) all images (i.e. by considering 
-        the finest image sampling, and rescaling the other images to that one). 
+        Whether to upscale (or leave intact) all images (i.e. by considering
+        the finest image sampling, and rescaling the other images to that one).
         If false, all images are downsampled to the coarsest sampling.
     debug: bool, opt
         Whether to print and plot intermediate outputs for debugging purpose
     figname: str, opt
-        If debug is set to True, this should be the full path + name of the 
-        file in which the comparison figure of the different input frames will 
+        If debug is set to True, this should be the full path + name of the
+        file in which the comparison figure of the different input frames will
         be saved.
     fitsname: str, opt
-        If debug is set to True, this should be the full path + name of the 
+        If debug is set to True, this should be the full path + name of the
         fits file in which the final prepared images will be saved.
-        
+
     Returns
     *******
     delta_rot: numpy array
         Dimensions are (nsamples, nframes-1)
     """
-    
-    
+
+
     def _gauss(x, *p):
         A, mu, sigma = p
         return A*np.exp(-(x-mu)**2/(2.*sigma**2))
-        
+
     nfr = len(frames)
     ncomp = nfr-1
-    
-    # convert variables to tuple if needed    
+
+    # convert variables to tuple if needed
     if not isinstance(thr1, (list, tuple)):
         thr1 = [thr1]*nfr
     if not isinstance(rsquare, (list, tuple)):
@@ -100,7 +100,7 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
         thr2 = [thr2]*nfr
     if not isinstance(rotang, (list, tuple)):
         rotang = [rotang]*nfr
-        
+
     if upscal:
         plsc_com = min(plsc)
         max_sz = 0
@@ -109,15 +109,15 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
                 max_sz = frames[ii].shape[0]
     else:
         plsc_com = max(plsc)
-        
+
     ccor = np.zeros([ncomp,test_rot.shape[0]])
     stddev = np.zeros(nfr)
-    
+
     # Preparation of all the frames
     for ii in range(nfr):
         frames_tmp = frames[ii].copy()
         ## replace nan with zeros
-        frames_tmp[np.where(np.isnan(frames_tmp))] = 0 
+        frames_tmp[np.where(np.isnan(frames_tmp))] = 0
 
         ## Resample to same px scale
         if plsc_com!= plsc[ii]:
@@ -125,13 +125,13 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
                 new_frames_tmp = np.zeros([max_sz,max_sz])
                 new_cy, new_cx = frame_center(new_frames_tmp)
                 new_frames_tmp[:frames_tmp.shape[0],:frames_tmp.shape[1]] = frames_tmp
-                old_cy, old_cx = frame_center(frames_tmp)              
+                old_cy, old_cx = frame_center(frames_tmp)
                 frames_tmp = vip.preproc.frame_shift(new_frames_tmp,new_cy-old_cy,new_cx-old_cx)
-            frames_tmp = _cube_resc_wave(np.array([frames_tmp]), [plsc[ii]/plsc_com], 
+            frames_tmp = _cube_resc_wave(np.array([frames_tmp]), [plsc[ii]/plsc_com],
                                          ref_xy=None, imlib='opencv',
-                                         interpolation='lanczos4', 
+                                         interpolation='lanczos4',
                                          scaling_y=None, scaling_x=None)[0]
-                                                     
+
         ## Mask center (just for thresholding)
         if rmask > 0:
             frame_mask = vip.var.mask_circle(frames_tmp, rmask/plsc_com)
@@ -141,20 +141,20 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
         ## Compute threshold if not rout
         if rout is None:
             _, _, stddev[ii] = sigma_clipped_stats(frames_tmp[np.where(frame_mask!=0)], sigma=2.5)
-        
+
         ## Crop any rectangle to square
         if frames_tmp.shape[0]!=frames_tmp.shape[1]:
             frames_tmp = vip.preproc.frame_crop(frames_tmp,min(frames_tmp.shape)-2)
-            frame_mask = vip.preproc.frame_crop(frame_mask,min(frame_mask.shape)-2)        
+            frame_mask = vip.preproc.frame_crop(frame_mask,min(frame_mask.shape)-2)
 
-        ## rescale by r^2 
+        ## rescale by r^2
         r_fr1 = dist_matrix(frame_mask.shape[0])
         if rsquare[ii] == 1:
             frame_mask = frame_mask*np.power(r_fr1,2)
             #frames_tmp = frames_tmp*np.power(r_fr1,2)
         elif rsquare[ii] == 0.5:
             frame_mask = frame_mask*r_fr1
-            
+
         ## Crop to same size - and possibly shift if not all even/odd
         ### find largest radius of non-zero signal
         bin_mask = np.where(frames_tmp,np.ones_like(frames_tmp),np.zeros_like(frames_tmp))
@@ -162,7 +162,7 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
         ### define crop size
         if ii == 0:
             crop_sz = max_crop_sz
-            for kk in range(nfr):   
+            for kk in range(nfr):
                 if int(min(frames[kk].shape)*plsc[kk]/plsc_com) < crop_sz:
                     crop_sz = int(min(frames[kk].shape)*plsc[kk]/plsc_com)
             final_frames = np.zeros([nfr,crop_sz,crop_sz])
@@ -174,11 +174,11 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
             if crop_sz < frames_tmp.shape[1]:
                 frames_tmp = vip.preproc.frame_crop(frames_tmp,crop_sz)
         final_frames[ii] = frames_tmp.copy()
-        
+
         ## shift the frames accordingly
         if shifts_xy is not None:
             final_frames[ii] = vip.preproc.frame_shift(final_frames[ii], shifts_xy[ii,1], shifts_xy[ii,0])
-           
+
         ## Mask cavity + threshold + r^2 (for real) - AFTER ROTATION for FRAME 1!
         if ii > 0:
             rcav_px = rmask/plsc_com
@@ -190,22 +190,22 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
             else:
                 rout_px = rout/plsc_com
                 final_frames[ii] = vip.var.mask_circle(final_frames[ii], rout_px, mode='out')
-    
+
             ## rescale by r^2 [MOVED AT THE END]
             r_fr1 = dist_matrix(final_frames[ii].shape[0])
             if rsquare[ii] == 1:
                 final_frames[ii] = final_frames[ii]*np.power(r_fr1,2)
             elif rsquare[ii] == 0.5:
                 final_frames[ii] = final_frames[ii]*r_fr1
-                
+
     if debug:
         frames_tmp = [final_frames[mm] for mm in range(nfr)]
-        frames_tmp = tuple(frames_tmp)                   
+        frames_tmp = tuple(frames_tmp)
         hp.plot_frames(frames_tmp, ang_scale=True,
                        ang_ticksep=int(0.2/plsc_com),
                        pxscale=plsc_com)
-        
-        
+
+
     # Comparison of pairs of frames
     cube1_rot = np.zeros([len(test_rot),final_frames[0].shape[0],final_frames[0].shape[1]])
     best_rots = np.zeros(ncomp)
@@ -224,7 +224,7 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
                 ## Scale by r^2
                 r_fr1 = dist_matrix(cube1_rot[tt].shape[0])
                 cube1_rot[tt] = cube1_rot[tt]*np.power(r_fr1,2)
-            elif rsquare[0] == 0.5:                
+            elif rsquare[0] == 0.5:
                 r_fr1 = dist_matrix(cube1_rot[tt].shape[0])
                 cube1_rot[tt] = cube1_rot[tt]*r_fr1
             if rot == 0 and debug:
@@ -251,22 +251,22 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
             rots_err[:] = np.nan
             ccor[:,:] = np.nan
             return best_rots, rots_err, ccor
-            
-    print("Best rotation angles with respect to first (+error): ", best_rots, rots_err, " deg")    
-    
-    
+
+    print("Best rotation angles with respect to first (+error): ", best_rots, rots_err, " deg")
+
+
     return best_rots, rots_err, ccor
-    
-    
-    
+
+
+
 def confidence(isamples, cfd=68.27, bins=100, gaussian_fit=False, weights=None,
-               best_rot=None, verbose=True, save=False, output_dir='', 
+               best_rot=None, verbose=True, save=False, output_dir='',
                output_file='confidence.txt', output_plot = 'confi_hist', pKey=['rot'],
                label=[r'$\Delta rot$'], **kwargs):
     """
     Determine the highly probable value for each model parameter, as well as
     the 1-sigma confidence interval.
-    
+
     Parameters
     ----------
     isamples: numpy.array
@@ -286,32 +286,32 @@ def confidence(isamples, cfd=68.27, bins=100, gaussian_fit=False, weights=None,
         repository.
     kwargs: optional
         Additional attributes are passed to the matplotlib hist() method.
-        
+
     Returns
     -------
     out: tuple
         A 2 elements tuple with the highly probable solution and the confidence
         interval.
-        
+
     """
     colors = ['r','b','y','c','m','g']
     plsc = kwargs.pop('plsc', 0.001)
     title = kwargs.pop('title', None)
-        
+
     #output_file = kwargs.pop('filename', 'confidence.txt')
-        
+
     try:
         l = isamples.shape[1]
     except:
         l = 1
-     
+
     confidenceInterval = {}
     val_max = {}
-    
-    
+
+
     if cfd == 100:
         cfd = 99.9
-        
+
     #########################################
     ##  Determine the confidence interval  ##
     #########################################
@@ -320,18 +320,18 @@ def confidence(isamples, cfd=68.27, bins=100, gaussian_fit=False, weights=None,
         sigma = np.zeros_like(mu)
 
     fig, ax = plt.subplots(1, l, figsize=(12,4))
-    
+
     for j in range(l):
         label_file = pKey #['r', 'theta', 'flux']
         #label = [r'$\Delta r$', r'$\Delta \theta$', r'$\Delta f$']
-        
+
         n, bin_vertices, _ = ax[j].hist(isamples[:,j], bins=bins,
                                                weights=weights, histtype='step',
                                                edgecolor='gray')
         bins_width = np.mean(np.diff(bin_vertices))
         surface_total = np.sum(np.ones_like(n)*bins_width * n)
         n_arg_sort = np.argsort(n)[::-1]
-        
+
         test = 0
         pourcentage = 0
         for k, jj in enumerate(n_arg_sort):
@@ -344,17 +344,17 @@ def confidence(isamples, cfd=68.27, bins=100, gaussian_fit=False, weights=None,
                 break
         n_arg_min = int(n_arg_sort[:k].min())
         n_arg_max = int(n_arg_sort[:k+1].max())
-        
+
         if n_arg_min == 0:
             n_arg_min += 1
         if n_arg_max == bins:
             n_arg_max -= 1
-        
+
         val_max[pKey[j]] = bin_vertices[int(n_arg_sort[0])]+bins_width/2.
         confidenceInterval[pKey[j]] = np.array([bin_vertices[n_arg_min-1],
                                                 bin_vertices[n_arg_max+1]]
                                                 - val_max[pKey[j]])
-                        
+
         arg = (isamples[:, j] >= bin_vertices[n_arg_min - 1]) * \
               (isamples[:, j] <= bin_vertices[n_arg_max + 1])
         if gaussian_fit:
@@ -396,8 +396,8 @@ def confidence(isamples, cfd=68.27, bins=100, gaussian_fit=False, weights=None,
 
             if title is not None:
                 msg = r"{} - {:.3f} {:.3f} +{:.3f}"
-                ax[j].set_title(msg.format(title, val_max[pKey[j]], 
-                                           confidenceInterval[pKey[j]][0], 
+                ax[j].set_title(msg.format(title, val_max[pKey[j]],
+                                           confidenceInterval[pKey[j]][0],
                                            confidenceInterval[pKey[j]][1]),
                                 fontsize=10)
 
@@ -443,10 +443,10 @@ def confidence(isamples, cfd=68.27, bins=100, gaussian_fit=False, weights=None,
                     text = '{}: \t\t\t{:.3f} \t-{:.3f} \t+{:.3f}\n'
                 else:
                     text = '{}: \t\t\t{:.3f} \t\t-{:.3f} \t\t+{:.3f}\n'
-                    
+
                 f.write(text.format(pKey[i], val_max[pKey[i]],
                                     confidenceMin, confidenceMax))
-            
+
             f.write(' ')
             f.write('Platescale = {} mas\n'.format(plsc*1000))
             f.write('r (mas): \t\t{:.2f} \t\t-{:.2f} \t\t+{:.2f}\n'.format(
