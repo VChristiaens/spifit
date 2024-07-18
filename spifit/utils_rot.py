@@ -6,13 +6,13 @@ from scipy.optimize import curve_fit
 from scipy.stats import norm
 import vip_hci as vip
 from vip_hci.preproc import frame_rotate
-from vip_hci.preproc.rescaling import cube_rescaling_wavelengths as _cube_resc_wave
-from vip_hci.var import frame_center
+from vip_hci.preproc.rescaling import cube_rescaling_wavelengths
+from vip_hci.var import frame_center, mask_circle
 try:
     from vip_hci.var import dist_matrix
 except:
     from vip_hci.var.shapes import dist_matrix
-    print('A newer version of VIP is available.')
+    print('Warning: A newer version of VIP is available.')
 from vip_hci.stats import cube_distance
 import pdb
 
@@ -20,8 +20,9 @@ __all__ = ['infer_relative_rotation']
 
 
 def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
-                            rout=None, thr1=10, rsquare=1, thr2=0, dist='pearson',
-                            rotang=0, upscal=True, debug=False, figname='Comparison_frames.pdf',
+                            rout=None, thr1=10, rsquare=1, thr2=0,
+                            dist='pearson', rotang=0, upscal=True, debug=False,
+                            figname='Comparison_frames.pdf',
                             fig_labels=None, fitsname=None):
     """
     Routine to infer relative rotation between 2nd to Nth frame with respect to
@@ -126,15 +127,19 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
                 new_cy, new_cx = frame_center(new_frames_tmp)
                 new_frames_tmp[:frames_tmp.shape[0],:frames_tmp.shape[1]] = frames_tmp
                 old_cy, old_cx = frame_center(frames_tmp)
-                frames_tmp = vip.preproc.frame_shift(new_frames_tmp,new_cy-old_cy,new_cx-old_cx)
-            frames_tmp = _cube_resc_wave(np.array([frames_tmp]), [plsc[ii]/plsc_com],
-                                         ref_xy=None, imlib='opencv',
-                                         interpolation='lanczos4',
-                                         scaling_y=None, scaling_x=None)[0]
+                frames_tmp = vip.preproc.frame_shift(new_frames_tmp,
+                                                     new_cy-old_cy,
+                                                     new_cx-old_cx)
+            frames_tmp = cube_rescaling_wavelengths(np.array([frames_tmp]),
+                                                    [plsc[ii]/plsc_com],
+                                                    ref_xy=None, imlib='opencv',
+                                                    interpolation='lanczos4',
+                                                    scaling_y=None,
+                                                    scaling_x=None)[0]
 
         ## Mask center (just for thresholding)
         if rmask > 0:
-            frame_mask = vip.var.mask_circle(frames_tmp, rmask/plsc_com)
+            frame_mask = mask_circle(frames_tmp, rmask/plsc_com)
         else:
             frame_mask = frames_tmp.copy()
 
@@ -157,7 +162,8 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
 
         ## Crop to same size - and possibly shift if not all even/odd
         ### find largest radius of non-zero signal
-        bin_mask = np.where(frames_tmp,np.ones_like(frames_tmp),np.zeros_like(frames_tmp))
+        bin_mask = np.where(frames_tmp,np.ones_like(frames_tmp),
+                            np.zeros_like(frames_tmp))
         max_crop_sz = int(2*np.amax(r_fr1*bin_mask))+1
         ### define crop size
         if ii == 0:
@@ -182,14 +188,14 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
         ## Mask cavity + threshold + r^2 (for real) - AFTER ROTATION for FRAME 1!
         if ii > 0:
             rcav_px = rmask/plsc_com
-            final_frames[ii]= vip.var.mask_circle(final_frames[ii], rcav_px)
+            final_frames[ii]= mask_circle(final_frames[ii], rcav_px)
 
             ## Thresholdings
             if rout is None:
                 final_frames[ii][np.where(final_frames[ii]<thr1[ii]*stddev[ii])] = 0.
             else:
                 rout_px = rout/plsc_com
-                final_frames[ii] = vip.var.mask_circle(final_frames[ii], rout_px, mode='out')
+                final_frames[ii] = mask_circle(final_frames[ii], rout_px, mode='out')
 
             ## rescale by r^2 [MOVED AT THE END]
             r_fr1 = dist_matrix(final_frames[ii].shape[0])
@@ -214,12 +220,12 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
         for tt, rot in enumerate(test_rot):
             cube1_rot[tt] = frame_rotate(final_frames[0],-rot-rotang[0], imlib='skimage')
             rcav_px = rmask/plsc_com
-            cube1_rot[tt]= vip.var.mask_circle(cube1_rot[tt], rcav_px)
+            cube1_rot[tt]= mask_circle(cube1_rot[tt], rcav_px)
             if rout is None:
                 cube1_rot[tt][np.where(cube1_rot[tt]<thr1[0]*stddev[0])] = 0.
             else:
                 rout_px = rout/plsc_com
-                cube1_rot[tt] = vip.var.mask_circle(cube1_rot[tt], rout_px, mode='out')
+                cube1_rot[tt] = mask_circle(cube1_rot[tt], rout_px, mode='out')
             if rsquare[0] == 1:
                 ## Scale by r^2
                 r_fr1 = dist_matrix(cube1_rot[tt].shape[0])
