@@ -6,7 +6,7 @@ from scipy.optimize import curve_fit
 from scipy.stats import norm
 import vip_hci as vip
 from vip_hci.preproc import frame_rotate
-from vip_hci.preproc.rescaling import _cube_resc_wave
+from vip_hci.preproc.rescaling import cube_rescaling_wavelengths
 from vip_hci.var import frame_center
 try:
     from vip_hci.var import dist_matrix
@@ -127,7 +127,7 @@ def infer_relative_rotation(frames, plsc, test_rot, shifts_xy=None, rmask=0,
                 new_frames_tmp[:frames_tmp.shape[0],:frames_tmp.shape[1]] = frames_tmp
                 old_cy, old_cx = frame_center(frames_tmp)              
                 frames_tmp = vip.preproc.frame_shift(new_frames_tmp,new_cy-old_cy,new_cx-old_cx)
-            frames_tmp = _cube_resc_wave(np.array([frames_tmp]), [plsc[ii]/plsc_com], 
+            frames_tmp = cube_rescaling_wavelengths(np.array([frames_tmp]), [plsc[ii]/plsc_com], 
                                          ref_xy=None, imlib='opencv',
                                          interpolation='lanczos4', 
                                          scaling_y=None, scaling_x=None)[0]
